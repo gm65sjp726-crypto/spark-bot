@@ -1,4 +1,4 @@
-аimport sqlite3
+import sqlite3
 from datetime import datetime
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
