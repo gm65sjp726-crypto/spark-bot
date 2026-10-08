@@ -1,0 +1,5 @@
+.env
+*.db
+*.pptx
+__pycache__/
+.venv/
