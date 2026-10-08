@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import html
 import logging
 import os
@@ -458,8 +459,22 @@ def main() -> None:
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
     app.add_error_handler(on_error)
 
-    log.info("Бот запущен")
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    # На хостинге с публичным адресом (Render и т.п.) работаем через webhook — так бот
+    # просыпается от входящего сообщения. Локально — обычный polling.
+    public_url = os.getenv("WEBHOOK_URL") or os.getenv("RENDER_EXTERNAL_URL")
+    if public_url:
+        log.info("Бот запущен (webhook: %s)", public_url)
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=int(os.getenv("PORT", "8080")),
+            url_path="telegram",
+            webhook_url=public_url.rstrip("/") + "/telegram",
+            secret_token=hashlib.sha256(BOT_TOKEN.encode()).hexdigest()[:32],
+            allowed_updates=Update.ALL_TYPES,
+        )
+    else:
+        log.info("Бот запущен (polling)")
+        app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
 if __name__ == "__main__":
